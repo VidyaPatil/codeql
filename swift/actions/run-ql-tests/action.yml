@@ -29,6 +29,7 @@ runs:
           --consistency-queries "${{ github.workspace }}/swift/ql/consistency-queries" \
           --compilation-cache "${{ steps.query-cache.outputs.cache-dir }}" \
           ${{ inputs.flags }} \
+          --show-extractor-output \
           swift/ql/test
       env:
         GITHUB_TOKEN: ${{ github.token }}
