@@ -30,6 +30,12 @@ runs:
           --compilation-cache "${{ steps.query-cache.outputs.cache-dir }}" \
           ${{ inputs.flags }} \
           --show-extractor-output \
-          swift/ql/test
+          swift/ql/test/extractor-tests/generated/expr/PackExpansionExpr/
       env:
         GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Dump logs
+      if: ${{ failure() }}
+      shell: bash
+      run: |
+        cat swift/ql/test/extractor-tests/generated/expr/PackExpansionExpr/PackExpansionExpr.testproj/log/qltest.log
