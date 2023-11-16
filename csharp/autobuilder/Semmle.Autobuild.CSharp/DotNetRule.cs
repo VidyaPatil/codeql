@@ -160,16 +160,37 @@ namespace Semmle.Autobuild.CSharp
             // Download versions mentioned in `global.json` files
             // See https://docs.microsoft.com/en-us/dotnet/core/tools/global-json
             var installScript = BuildScript.Success;
-            var validGlobalJson = false;
+            var foundFrameworkVersion = false;
             var globalJsonSdkVersion = SdkVersionFromGlobalJson(builder);
 
             if (!string.IsNullOrEmpty(globalJsonSdkVersion))
             {
                 installScript &= DownloadDotNetVersion(builder, installDir, globalJsonSdkVersion);
-                validGlobalJson = true;
+                foundFrameworkVersion = true;
+            }
+            else
+            {
+                // If there is no `global.json` to retrieve the .NET version from, we should probably install
+                // at least the highest .NET version that is indicated by the project files to ensure that
+                // the .NET CLI version understands the projects.
+                var highestTargetFrameworkVersion = builder.ProjectsOrSolutionsToBuild
+                    .SelectMany(p => Enumerators.Singleton(p).Concat(p.IncludedProjects))
+                    .OfType<Project<CSharpAutobuildOptions>>()
+                    .Select(p => p.TargetFramework)
+                    .OfType<string>()
+                    .Where(v => v.StartsWith("net"))
+                    .Select(v => new Version(v[3..]))
+                    .OrderDescending()
+                    .FirstOrDefault();
+
+                if (highestTargetFrameworkVersion is not null)
+                {
+                    installScript &= DownloadDotNetVersion(builder, installDir, highestTargetFrameworkVersion.ToString());
+                    foundFrameworkVersion = true;
+                }
             }
 
-            return validGlobalJson ? installScript : BuildScript.Failure;
+            return foundFrameworkVersion ? installScript : BuildScript.Failure;
         }
 
         /// <summary>
