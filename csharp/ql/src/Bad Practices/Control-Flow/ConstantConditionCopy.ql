@@ -6,7 +6,7 @@
  * @kind problem
  * @problem.severity warning
  * @precision very-high
- * @id cs/constant-condition
+ * @id cs/constant-condition-copy
  * @tags maintainability
  *       readability
  *       external/cwe/cwe-835
